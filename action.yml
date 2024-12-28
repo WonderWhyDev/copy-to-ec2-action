@@ -66,15 +66,15 @@ runs:
       - name: Copy ZIP FILE to EC2
         shell: bash
         run: | 
-          rsync -avz -e 'ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem' ${{ inputs.fileToCopy }}  ${{ inputs.ec2User }}@${{ inputs.ec2IP }}:{{ inputs.destination }}
+          rsync -avz -e 'ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem' ${{ inputs.fileToCopy }}  ${{ inputs.ec2User }}@${{ inputs.ec2IP }}:${{ inputs.destination }}
 
       - name: Unzip  flutterFlow Web Build on EC2
         shell: bash
         run: |
           ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem ${{ inputs.ec2User }}@${{ inputs.ec2IP }} << 'EOF'
-          unzip -o {{ inputs.destination }} -d {{ inputs.unzipDestination }}
-          cd {{ inputs.unzipDestination }}
-          rm -rf {{ inputs.destination }}
+          unzip -o ${{ inputs.destination }} -d ${{ inputs.unzipDestination }}
+          cd ${{ inputs.unzipDestination }}
+          rm -rf ${{ inputs.destination }}
           EOF
 
       - name: Remove Added Security Group Rule

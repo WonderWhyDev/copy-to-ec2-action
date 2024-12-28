@@ -22,9 +22,8 @@ inputs:
   unzipDestination: 
     required: true
 
-jobs:
-  copy-to-ec2:
-    runs-on: ubuntu-latest
+runs:
+    using: "composite"
     steps:
       - name: Get Runner IP
         run: |

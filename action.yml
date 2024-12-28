@@ -1,6 +1,6 @@
 name: Copy To Ec2
 description: 'Copy files To Ec2'
-secrets:
+inputs:
   ec2IP:
     required: true
   awsAccessKeyId:
@@ -26,9 +26,6 @@ jobs:
   copy-to-ec2:
     runs-on: ubuntu-latest
     steps:
-      - name: Set Variables
-        run: echo "ELASTIC_IP=${{ secrets.ec2User }}@${{ secrets.ec2IP }}" >> $GITHUB_ENV
-
       - name: Get Runner IP
         run: |
           IP_ADDRESS=$(curl -s https://api.ipify.org)
@@ -37,13 +34,13 @@ jobs:
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.awsAccessKeyId }}
-          aws-secret-access-key: ${{ secrets.awsSecretKey }}
-          aws-region: ${{ secrets.awsRegion }}
+          aws-access-key-id: ${{ inputs.awsAccessKeyId }}
+          aws-secret-access-key: ${{ inputs.awsSecretKey }}
+          aws-region: ${{ inputs.awsRegion }}
       
       - name: Update Security Group
         run: |
-          SECURITY_GROUP_ID="${{ secrets.secuityGroupId }}"
+          SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
           IP_ADDRESS=${{ env.IP_ADDRESS }}
           aws ec2 authorize-security-group-ingress \
             --group-id $SECURITY_GROUP_ID \
@@ -53,7 +50,7 @@ jobs:
 
       - name: Setup SSH Key
         env:
-          SSH_PRIVATE_KEY_FOR_EC2: ${{ secrets.sshKey }}
+          SSH_PRIVATE_KEY_FOR_EC2: ${{ inputs.sshKey }}
         run: |
             echo "$SSH_PRIVATE_KEY_FOR_EC2" > SSH_PRIVATE_KEY_FOR_EC2.pem
             chmod 600 SSH_PRIVATE_KEY_FOR_EC2.pem
@@ -61,23 +58,23 @@ jobs:
       - name: Add remote host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.ec2IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ inputs.ec2IP }} >> ~/.ssh/known_hosts
           
       - name: Copy ZIP FILE to EC2
         run: | 
-          rsync -avz -e 'ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem' ${{ secrets.fileToCopy }}  ${{ env.ELASTIC_IP }}:{{ secrets.destination }}
+          rsync -avz -e 'ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem' ${{ inputs.fileToCopy }}  ${{ inputs.ec2User }}@${{ inputs.ec2IP }}:{{ inputs.destination }}
 
       - name: Unzip  flutterFlow Web Build on EC2
         run: |
-          ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem ${{ env.ELASTIC_IP }} << 'EOF'
-          unzip -o {{ secrets.destination }} -d {{ secrets.unzipDestination }}
-          cd {{ secrets.unzipDestination }}
-          rm -rf {{ secrets.destination }}
+          ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem ${{ inputs.ec2User }}@${{ secrets.ec2IP }} << 'EOF'
+          unzip -o {{ inputs.destination }} -d {{ inputs.unzipDestination }}
+          cd {{ inputs.unzipDestination }}
+          rm -rf {{ inputs.destination }}
           EOF
 
       - name: Remove Added Security Group Rule
         run: |
-          SECURITY_GROUP_ID="${{ secrets.secuityGroupId }}"
+          SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
           aws ec2 revoke-security-group-ingress \
             --group-id $SECURITY_GROUP_ID \
             --protocol tcp \

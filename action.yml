@@ -75,8 +75,6 @@ runs:
         run: |
           ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem ${{ inputs.ec2User }}@${{ inputs.ec2IP }} << 'EOF'
           unzip -o ${{ inputs.destination }} -d ${{ inputs.unzipDestination }}
-          cd ${{ inputs.unzipDestination }}
-          rm -rf ${{ inputs.cleanUpdestination }}
           EOF
 
       - name: Remove Added Security Group Rule

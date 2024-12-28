@@ -26,6 +26,7 @@ runs:
     using: "composite"
     steps:
       - name: Get Runner IP
+        shell: bash
         run: |
           IP_ADDRESS=$(curl -s https://api.ipify.org)
           echo "IP_ADDRESS=$IP_ADDRESS" >> $GITHUB_ENV
@@ -38,6 +39,7 @@ runs:
           aws-region: ${{ inputs.awsRegion }}
       
       - name: Update Security Group
+        shell: bash
         run: |
           SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
           IP_ADDRESS=${{ env.IP_ADDRESS }}
@@ -50,20 +52,24 @@ runs:
       - name: Setup SSH Key
         env:
           SSH_PRIVATE_KEY_FOR_EC2: ${{ inputs.sshKey }}
+        shell: bash
         run: |
             echo "$SSH_PRIVATE_KEY_FOR_EC2" > SSH_PRIVATE_KEY_FOR_EC2.pem
             chmod 600 SSH_PRIVATE_KEY_FOR_EC2.pem
 
       - name: Add remote host to known_hosts
+        shell: bash
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ inputs.ec2IP }} >> ~/.ssh/known_hosts
           
       - name: Copy ZIP FILE to EC2
+        shell: bash
         run: | 
           rsync -avz -e 'ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem' ${{ inputs.fileToCopy }}  ${{ inputs.ec2User }}@${{ inputs.ec2IP }}:{{ inputs.destination }}
 
       - name: Unzip  flutterFlow Web Build on EC2
+        shell: bash
         run: |
           ssh -i SSH_PRIVATE_KEY_FOR_EC2.pem ${{ inputs.ec2User }}@${{ secrets.ec2IP }} << 'EOF'
           unzip -o {{ inputs.destination }} -d {{ inputs.unzipDestination }}
@@ -72,6 +78,7 @@ runs:
           EOF
 
       - name: Remove Added Security Group Rule
+        shell: bash
         run: |
           SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
           aws ec2 revoke-security-group-ingress \

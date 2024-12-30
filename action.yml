@@ -79,6 +79,8 @@ runs:
 
       - name: Remove Added Security Group Rule
         shell: bash
+        if: always()
+        continue-on-error: true
         run: |
           SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
           aws ec2 revoke-security-group-ingress \

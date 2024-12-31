@@ -11,7 +11,7 @@ inputs:
     required: true
   ec2User:
     required: true
-  secuityGroupId:
+  securityGroupId:
     required: true
   sshKey:
     required: true
@@ -20,8 +20,6 @@ inputs:
   destination:
     required: true
   unzipDestination: 
-    required: true
-  cleanUpdestination:
     required: true
 
 runs:
@@ -43,7 +41,7 @@ runs:
       - name: Update Security Group
         shell: bash
         run: |
-          SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
+          SECURITY_GROUP_ID="${{ inputs.securityGroupId }}"
           IP_ADDRESS=${{ env.IP_ADDRESS }}
           aws ec2 authorize-security-group-ingress \
             --group-id $SECURITY_GROUP_ID \
@@ -82,7 +80,7 @@ runs:
         if: always()
         continue-on-error: true
         run: |
-          SECURITY_GROUP_ID="${{ inputs.secuityGroupId }}"
+          SECURITY_GROUP_ID="${{ inputs.securityGroupId }}"
           aws ec2 revoke-security-group-ingress \
             --group-id $SECURITY_GROUP_ID \
             --protocol tcp \
